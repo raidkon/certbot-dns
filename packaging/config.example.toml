@@ -1,0 +1,26 @@
+# Пример конфигурации certbot-dns (systemd).
+# При установке копируется в /etc/certbot-dns/config.toml, если файл ещё не существует.
+
+[acme]
+email = "admin@example.com"
+directory = "production"
+state_dir = "/var/lib/certbot-dns/acme-state"
+
+[fastdns]
+api_token = "${FASTDNS_API_TOKEN}"
+
+[dns_challenge]
+propagation_timeout = "24h"
+propagation_interval = "10m"
+
+[[certificates]]
+id = "sites"
+domains = ["*.example.com"]
+output_dir = "/var/lib/certbot-dns/certs/sites"
+key_type = "ec256"
+renew_before_days = 25
+
+[runtime]
+mode = "daemon"
+poll_when_ok = "24h"
+loglevel = "info"

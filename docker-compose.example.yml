@@ -1,0 +1,32 @@
+# Пример docker-compose для опубликованного образа.
+#
+#   cp docker-compose.example.yml docker-compose.yml
+#   cp config.docker.example.toml config.toml
+#   # отредактируйте config.toml (email, domains)
+#   echo 'FASTDNS_API_TOKEN=...' > .env
+#   mkdir -p data
+#   sudo chown -R "${CERTBOT_DNS_UID:-1000}:${CERTBOT_DNS_GID:-1000}" data
+#   docker compose up -d
+#
+# Пользователь процесса по умолчанию 1000:1000. Другой UID/GID:
+#   CERTBOT_DNS_UID=2000 CERTBOT_DNS_GID=2000 docker compose up -d
+# или в docker-compose.yml: user: "2000:2000" (перекрывает переменные ниже).
+# Каталог data/ на хосте должен принадлежать тому же UID:GID.
+#
+# Образ публикуется при релизе (git tag v*):
+#   ghcr.io/raidkon/certbot-dns:latest
+#   ghcr.io/raidkon/certbot-dns:v1.0.0
+
+services:
+  certbot-dns:
+    image: ghcr.io/raidkon/certbot-dns:${CERTBOT_DNS_VERSION:-latest}
+    container_name: certbot-dns
+    restart: unless-stopped
+    user: "${CERTBOT_DNS_UID:-1000}:${CERTBOT_DNS_GID:-1000}"
+    env_file:
+      - .env
+    environment:
+      FASTDNS_API_TOKEN: ${FASTDNS_API_TOKEN:?set FASTDNS_API_TOKEN in .env}
+    volumes:
+      - ./config.toml:/etc/certbot-dns/config.toml:ro
+      - ./data:/var/lib/certbot-dns

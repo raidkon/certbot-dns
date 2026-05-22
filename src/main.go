@@ -16,6 +16,8 @@ import (
 	fastdns "github.com/nf404/libdns-fastdns"
 )
 
+var version = "dev"
+
 func main() {
 	configPath := flag.String("config", "/etc/certbot-dns/config.toml", "путь к TOML-конфигу")
 	flag.Parse()
@@ -36,7 +38,7 @@ func main() {
 		slog.Error("разбор domains", "err", err)
 		os.Exit(2)
 	}
-	slog.Info("конфиг применён", "config_path", *configPath, "expanded_certs", len(expanded), "raw_certificates_blocks", len(cfg.Certificates))
+	slog.Info("конфиг применён", "config_path", *configPath, "version", version, "expanded_certs", len(expanded), "raw_certificates_blocks", len(cfg.Certificates))
 	for i := range expanded {
 		e := &expanded[i]
 		slog.Debug("выпуск из конфига", "index", i, "label", e.Label, "zone", e.Zone, "san", e.Domains, "output_dir", e.OutputDir, "renew_before_days", e.RenewBeforeDays, "key_type", e.KeyType)

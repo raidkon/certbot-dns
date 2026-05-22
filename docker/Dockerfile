@@ -7,12 +7,12 @@
 #   docker run --rm \
 #     -e FASTDNS_API_TOKEN=... \
 #     -v /path/to/config.toml:/etc/certbot-dns/config.toml:ro \
-#     -v certbot-dns-acme-state:/var/certs/.acme-state \
-#     -v certbot-dns-out:/var/certs/out \
+#     -v certbot-dns-data:/var/lib/certbot-dns \
 #     certbot-dns:latest
 #
-# При относительных путях в config.toml (state_dir, output_dir) задайте WORKDIR или
-# монтируйте том на /var/certs.
+# Опубликованный образ (после git tag v*):
+#   ghcr.io/raidkon/certbot-dns:latest
+# См. docker-compose.example.yml
 
 # Образ Go: при необходимости подтянется toolchain из go.mod (1.25) через GOTOOLCHAIN.
 FROM golang:1.24-bookworm AS builder
@@ -29,15 +29,16 @@ COPY src/ ./
 
 ARG TARGETOS=linux
 ARG TARGETARCH=amd64
+ARG VERSION=dev
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -trimpath -ldflags="-s -w" -o /out/certs-acme .
+    go build -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/certbot-dns .
 
 FROM gcr.io/distroless/static-debian12:nonroot
 
-COPY --from=builder /out/certs-acme /usr/local/bin/certs-acme
+COPY --from=builder /out/certbot-dns /usr/local/bin/certbot-dns
 
-WORKDIR /var/certs
+WORKDIR /var/lib/certbot-dns
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/usr/local/bin/certs-acme"]
+ENTRYPOINT ["/usr/local/bin/certbot-dns"]

@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-binaries:
+    name: Build release tarballs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: src/go.mod
+          cache-dependency-path: src/go.sum
+
+      - name: Build linux binaries
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          mkdir -p dist
+
+          for pair in amd64:amd64 arm64:arm64; do
+            GOARCH="${pair#*:}"
+            ARCH="${pair%%:*}"
+            out="dist/certbot-dns-linux-${ARCH}"
+            root="dist/root-${ARCH}"
+            rm -rf "$root"
+            mkdir -p \
+              "$root/usr/local/bin" \
+              "$root/etc/certbot-dns" \
+              "$root/lib/systemd/system"
+
+            (
+              cd src
+              CGO_ENABLED=0 GOOS=linux GOARCH="${GOARCH}" \
+                go build -trimpath -ldflags="-s -w -X main.version=${GITHUB_REF_NAME}" \
+                -o "../${out}" .
+            )
+
+            cp "${out}" "$root/usr/local/bin/certbot-dns"
+            cp packaging/certbot-dns.service "$root/lib/systemd/system/"
+            cp packaging/config.example.toml "$root/etc/certbot-dns/"
+            cp packaging/env.example "$root/etc/certbot-dns/"
+            tar -czf "certbot-dns_${VERSION}_linux_${ARCH}.tar.gz" -C "$root" .
+          done
+
+          sha256sum certbot-dns_*.tar.gz > SHA256SUMS
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-binaries
+          path: |
+            certbot-dns_*_linux_*.tar.gz
+            SHA256SUMS
+
+  build-docker:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ github.ref_name }}
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-binaries, build-docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-binaries
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: |
+            certbot-dns_*_linux_*.tar.gz
+            SHA256SUMS

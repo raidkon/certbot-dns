@@ -1,0 +1,17 @@
+[Unit]
+Description=certbot-dns — Let's Encrypt DNS-01 (FastVPS FastDNS)
+Documentation=https://github.com/raidkon/certbot-dns
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=certbot-dns
+Group=certbot-dns
+EnvironmentFile=-/etc/certbot-dns/env
+ExecStart=/usr/local/bin/certbot-dns
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -35,6 +35,8 @@ config.toml
 # ACME state и выпущенные сертификаты
 .acme-state/
 out/
+dist/
+data/
 **/.obtain-checkpoint.json
 
 # Editor/IDE

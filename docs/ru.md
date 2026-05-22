@@ -1,11 +1,11 @@
 # Документация certbot-dns
 
-Утилита `certs-acme` выпускает и продлевает сертификаты Let's Encrypt методом **DNS-01**, управляя TXT-записями через API **FastVPS FastDNS**.
+Утилита `certbot-dns` выпускает и продлевает сертификаты Let's Encrypt методом **DNS-01**, управляя TXT-записями через API **FastVPS FastDNS**.
 
 ## Содержание
 
 1. [Требования](#требования)
-2. [Установка и сборка](#установка-и-сборка)
+2. [Установка](#установка)
 3. [Конфигурация](#конфигурация)
 4. [Разбор доменов и каталоги](#разбор-доменов-и-каталоги)
 5. [DNS-01 и FastDNS](#dns-01-и-fastdns)
@@ -22,30 +22,42 @@
 - Домены, делегированные в FastDNS (зона должна быть доступна через API)
 - Контактный email для регистрации ACME
 
-## Установка и сборка
+## Установка
+
+### install.sh (рекомендуется, Linux + systemd)
+
+```bash
+curl -fsSL https://github.com/raidkon/certbot-dns/raw/master/install.sh -o get-certbot-dns.sh
+sudo sh ./get-certbot-dns.sh --dry-run
+sudo sh ./get-certbot-dns.sh
+```
+
+Скрипт загружает tar.gz из GitHub Release (бинарник, `certbot-dns.service`, примеры config/env), создаёт пользователя `certbot-dns`, каталог `/var/lib/certbot-dns` и включает systemd-сервис в режиме **daemon**.
+
+```bash
+sudo nano /etc/certbot-dns/config.toml
+sudo nano /etc/certbot-dns/env
+sudo systemctl restart certbot-dns
+journalctl -u certbot-dns -f
+```
+
+Опции: `--version v1.0.0`, `--no-start`. Удаление: `uninstall.sh` (`--purge`).
 
 ### Из исходников
 
 ```bash
 git clone https://github.com/raidkon/certbot-dns.git
 cd certbot-dns
-cp config.example.toml /etc/certbot-dns/config.toml
-# отредактируйте config.toml
+sudo cp config.example.toml /etc/certbot-dns/config.toml
 
 export FASTDNS_API_TOKEN="ваш-токен"
 
 cd src
-go build -o certs-acme .
-./certs-acme
+go build -o certbot-dns .
+./certbot-dns
 ```
 
-Флаг `-config` задаёт путь к TOML; по умолчанию `/etc/certbot-dns/config.toml`.
-
-### Бинарник без установки Go
-
-```bash
-cd src && go run . -config ../config.toml
-```
+По умолчанию конфиг: `/etc/certbot-dns/config.toml`.
 
 ## Конфигурация
 

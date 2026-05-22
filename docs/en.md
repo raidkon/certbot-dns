@@ -1,11 +1,11 @@
 # certbot-dns documentation
 
-The `certs-acme` utility issues and renews Let's Encrypt TLS certificates using **DNS-01** challenges, managing TXT records via the **FastVPS FastDNS** API.
+The `certbot-dns` utility issues and renews Let's Encrypt TLS certificates using **DNS-01** challenges, managing TXT records via the **FastVPS FastDNS** API.
 
 ## Table of contents
 
 1. [Requirements](#requirements)
-2. [Installation and build](#installation-and-build)
+2. [Installation](#installation)
 3. [Configuration](#configuration)
 4. [Domain expansion and output layout](#domain-expansion-and-output-layout)
 5. [DNS-01 and FastDNS](#dns-01-and-fastdns)
@@ -22,30 +22,42 @@ The `certs-acme` utility issues and renews Let's Encrypt TLS certificates using 
 - Domains delegated to FastDNS (the zone must be reachable via the API)
 - Contact email for ACME registration
 
-## Installation and build
+## Installation
+
+### install.sh (recommended, Linux + systemd)
+
+```bash
+curl -fsSL https://github.com/raidkon/certbot-dns/raw/master/install.sh -o get-certbot-dns.sh
+sudo sh ./get-certbot-dns.sh --dry-run
+sudo sh ./get-certbot-dns.sh
+```
+
+The script downloads a release tarball (binary, `certbot-dns.service`, config/env examples), creates the `certbot-dns` user, `/var/lib/certbot-dns`, and enables the **daemon** systemd service.
+
+```bash
+sudo nano /etc/certbot-dns/config.toml
+sudo nano /etc/certbot-dns/env
+sudo systemctl restart certbot-dns
+journalctl -u certbot-dns -f
+```
+
+Options: `--version v1.0.0`, `--no-start`. Uninstall: `uninstall.sh` (`--purge`).
 
 ### From source
 
 ```bash
 git clone https://github.com/raidkon/certbot-dns.git
 cd certbot-dns
-cp config.example.toml /etc/certbot-dns/config.toml
-# edit config.toml
+sudo cp config.example.toml /etc/certbot-dns/config.toml
 
 export FASTDNS_API_TOKEN="your-token"
 
 cd src
-go build -o certs-acme .
-./certs-acme
+go build -o certbot-dns .
+./certbot-dns
 ```
 
-The `-config` flag sets the TOML path; default is `/etc/certbot-dns/config.toml`.
-
-### Run without installing a binary
-
-```bash
-cd src && go run . -config ../config.toml
-```
+Default config path: `/etc/certbot-dns/config.toml`.
 
 ## Configuration
 
