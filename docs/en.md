@@ -29,17 +29,17 @@ The `certs-acme` utility issues and renews Let's Encrypt TLS certificates using 
 ```bash
 git clone https://github.com/raidkon/certbot-dns.git
 cd certbot-dns
-cp config.example.toml config.toml
+cp config.example.toml /etc/certbot-dns/config.toml
 # edit config.toml
 
 export FASTDNS_API_TOKEN="your-token"
 
 cd src
 go build -o certs-acme .
-./certs-acme -config ../config.toml
+./certs-acme
 ```
 
-The `-config` flag sets the TOML path (default: `config.toml` in the current directory).
+The `-config` flag sets the TOML path; default is `/etc/certbot-dns/config.toml`.
 
 ### Run without installing a binary
 
@@ -211,7 +211,7 @@ services:
     environment:
       FASTDNS_API_TOKEN: ${FASTDNS_API_TOKEN}
     volumes:
-      - ./config.toml:/etc/certs/config.toml:ro
+      - ./config.toml:/etc/certbot-dns/config.toml:ro
       - acme-state:/var/certs/.acme-state
       - certs-out:/var/certs/out
     restart: unless-stopped

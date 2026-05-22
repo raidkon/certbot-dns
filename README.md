@@ -18,13 +18,16 @@
 ## Быстрый старт
 
 ```bash
-cp config.example.toml config.toml
+sudo mkdir -p /etc/certbot-dns
+sudo cp config.example.toml /etc/certbot-dns/config.toml
 # отредактируйте email, domains, FASTDNS_API_TOKEN
 
 export FASTDNS_API_TOKEN="ваш-токен"
 
-cd src && go run . -config ../config.toml
+cd src && go run . -config /etc/certbot-dns/config.toml
 ```
+
+Без флага `-config` используется путь `/etc/certbot-dns/config.toml`.
 
 Или через Docker:
 
@@ -32,7 +35,7 @@ cd src && go run . -config ../config.toml
 docker build -f docker/Dockerfile -t certbot-dns:latest .
 docker run --rm \
   -e FASTDNS_API_TOKEN=... \
-  -v "$(pwd)/config.toml:/etc/certs/config.toml:ro" \
+  -v "$(pwd)/config.toml:/etc/certbot-dns/config.toml:ro" \
   -v certbot-dns-state:/var/certs/.acme-state \
   -v certbot-dns-out:/var/certs/out \
   certbot-dns:latest

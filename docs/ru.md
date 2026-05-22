@@ -29,17 +29,17 @@
 ```bash
 git clone https://github.com/raidkon/certbot-dns.git
 cd certbot-dns
-cp config.example.toml config.toml
+cp config.example.toml /etc/certbot-dns/config.toml
 # отредактируйте config.toml
 
 export FASTDNS_API_TOKEN="ваш-токен"
 
 cd src
 go build -o certs-acme .
-./certs-acme -config ../config.toml
+./certs-acme
 ```
 
-Флаг `-config` задаёт путь к TOML (по умолчанию `config.toml` в текущей директории).
+Флаг `-config` задаёт путь к TOML; по умолчанию `/etc/certbot-dns/config.toml`.
 
 ### Бинарник без установки Go
 
@@ -211,7 +211,7 @@ services:
     environment:
       FASTDNS_API_TOKEN: ${FASTDNS_API_TOKEN}
     volumes:
-      - ./config.toml:/etc/certs/config.toml:ro
+      - ./config.toml:/etc/certbot-dns/config.toml:ro
       - acme-state:/var/certs/.acme-state
       - certs-out:/var/certs/out
     restart: unless-stopped

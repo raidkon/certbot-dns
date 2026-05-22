@@ -9,7 +9,7 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-// Config описывает TOML-конфиг (по умолчанию config.toml).
+// Config описывает TOML-конфиг (по умолчанию /etc/certbot-dns/config.toml).
 type Config struct {
 	ACME         ACMEConfig         `toml:"acme"`
 	FastDNS      FastDNSConfig      `toml:"fastdns"`

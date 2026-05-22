@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("config", "config.toml", "путь к TOML-конфигу")
+	configPath := flag.String("config", "/etc/certbot-dns/config.toml", "путь к TOML-конфигу")
 	flag.Parse()
 
 	cfg, err := loadConfig(*configPath)
