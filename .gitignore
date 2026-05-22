@@ -27,6 +27,16 @@ go.work.sum
 # env file
 .env
 
+# Локальный конфиг (секреты)
+config.toml
+*.config.toml
+!config.example.toml
+
+# ACME state и выпущенные сертификаты
+.acme-state/
+out/
+**/.obtain-checkpoint.json
+
 # Editor/IDE
 # .idea/
 # .vscode/
