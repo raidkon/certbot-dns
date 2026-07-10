@@ -125,6 +125,29 @@ install_config_if_missing() {
   log "Предупреждение: config.example.toml не найден в $CONFIG_DIR" >&2
 }
 
+SYSTEMD_UNIT_DIR="/usr/lib/systemd/system"
+
+install_systemd_unit() {
+  unit="${SERVICE_NAME}.service"
+  dst="${SYSTEMD_UNIT_DIR}/${unit}"
+
+  if [ -f "$dst" ]; then
+    return 0
+  fi
+
+  for src in "/lib/systemd/system/${unit}" "${CONFIG_DIR}/${unit}"; do
+    if [ -f "$src" ]; then
+      run mkdir -p "$SYSTEMD_UNIT_DIR"
+      run cp "$src" "$dst"
+      run chmod 644 "$dst"
+      log "Установлен unit systemd: $dst"
+      return 0
+    fi
+  done
+
+  log "Предупреждение: ${unit} не найден после распаковки" >&2
+}
+
 install_env_if_missing() {
   if [ -f "$CONFIG_DIR/env" ]; then
     log "Файл env уже есть: $CONFIG_DIR/env"
@@ -205,6 +228,7 @@ main() {
   run mkdir -p "$CONFIG_DIR"
   install_config_if_missing
   install_env_if_missing
+  install_systemd_unit
 
   if command -v systemctl >/dev/null 2>&1; then
     enable_service

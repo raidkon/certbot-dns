@@ -42,7 +42,7 @@ jobs:
             mkdir -p \
               "$root/usr/local/bin" \
               "$root/etc/certbot-dns" \
-              "$root/lib/systemd/system"
+              "$root/usr/lib/systemd/system"
 
             (
               cd src
@@ -52,7 +52,7 @@ jobs:
             )
 
             cp "${out}" "$root/usr/local/bin/certbot-dns"
-            cp packaging/certbot-dns.service "$root/lib/systemd/system/"
+            cp packaging/certbot-dns.service "$root/usr/lib/systemd/system/"
             cp packaging/config.example.toml "$root/etc/certbot-dns/"
             cp packaging/env.example "$root/etc/certbot-dns/"
             tar -czf "certbot-dns_${VERSION}_linux_${ARCH}.tar.gz" -C "$root" .

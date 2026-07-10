@@ -59,7 +59,10 @@ fi
 if command -v systemctl >/dev/null 2>&1; then
   run systemctl stop "$SERVICE_NAME.service" 2>/dev/null || true
   run systemctl disable "$SERVICE_NAME.service" 2>/dev/null || true
-  run rm -f "/etc/systemd/system/${SERVICE_NAME}.service" "/lib/systemd/system/${SERVICE_NAME}.service"
+  run rm -f \
+    "/etc/systemd/system/${SERVICE_NAME}.service" \
+    "/usr/lib/systemd/system/${SERVICE_NAME}.service" \
+    "/lib/systemd/system/${SERVICE_NAME}.service"
   run systemctl daemon-reload
 fi
 
